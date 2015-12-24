@@ -3,8 +3,14 @@ defmodule Onetime.Mixfile do
 
   def project do
     [app: :onetime,
-     version: "0.0.1",
+     version: "0.1.1",
      elixir: "~> 1.1",
+     description: "An onetime key-value store",
+     package: [
+       maintainers: ["Ryo Hashiguchi(ryo33)"],
+       licenses: ["MIT"],
+       links: %{"GitHub" => "https://github.com/ryo33/onetime-elixir"}
+     ],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps]
