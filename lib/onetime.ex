@@ -87,6 +87,18 @@ defmodule Onetime do
     GenServer.cast(name, {:clear, secs})
   end
 
+  defp get_from_map(map, key, now, secs) do
+    case Map.get(map, key) do
+      {value, time} ->
+        if secs != :infinity && Date.diff(time, now, :secs) > secs do
+          :error
+        else
+          {:ok, value}
+        end
+        _ -> :error
+    end
+  end
+
   # Callbacks
 
   def handle_cast({:register, {key, value, time}}, map) do
@@ -95,6 +107,14 @@ defmodule Onetime do
 
   def handle_cast({:drop, key}, map) do
     {:noreply, Map.delete(map, key)}
+  end
+
+  def handle_cast({:clear, secs}, map) do
+    map = if secs != :infinity do
+      now = Date.now()
+      Enum.filter(map, fn {_key, {_value, time}} -> Date.diff(time, now, :secs) < secs end)
+    else map end
+    {:noreply, map}
   end
 
   def handle_call({:get, {key, secs}}, _from, map) do
@@ -119,18 +139,6 @@ defmodule Onetime do
     {:reply, reply, map}
   end
 
-  defp get_from_map(map, key, now, secs) do
-    case Map.get(map, key) do
-      {value, time} ->
-        if secs != :infinity && Date.diff(time, now, :secs) > secs do
-          :error
-        else
-          {:ok, value}
-        end
-        _ -> :error
-    end
-  end
-
   def handle_call({:get_all, secs}, _from, map) do
     map = if secs != :infinity do
       now = Date.now()
@@ -138,13 +146,5 @@ defmodule Onetime do
     else map end
     reply = Enum.map(map, fn {key, {value, _time}} -> {key, value} end) |> Enum.into(%{})
     {:reply, reply, map}
-  end
-
-  def handle_cast({:clear, secs}, map) do
-    map = if secs != :infinity do
-      now = Date.now()
-      Enum.filter(map, fn {_key, {_value, time}} -> Date.diff(time, now, :secs) < secs end)
-    else map end
-    {:noreply, map}
   end
 end
