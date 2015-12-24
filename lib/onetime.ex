@@ -58,7 +58,7 @@ defmodule Onetime do
   @doc """
   Returns the value for a given key and removes them.
   """
-  @spec get(any, any, number) :: result
+  @spec pop(any, any, number) :: result
   def pop(name, key, secs \\ :infinity) do
     GenServer.call(name, {:pop, {key, secs}})
   end
