@@ -3,7 +3,7 @@ defmodule Onetime.Mixfile do
 
   def project do
     [app: :onetime,
-     version: "0.1.1",
+     version: "0.1.2",
      elixir: "~> 1.1",
      description: "An onetime key-value store",
      package: [
@@ -33,6 +33,8 @@ defmodule Onetime.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:timex, "~> 1.0.0-rc4"}]
+    [{:timex, "~> 1.0.0-rc4"},
+     {:earmark, "~> 0.1", only: :dev},
+     {:ex_doc, "~> 0.11", only: :dev}]
   end
 end
