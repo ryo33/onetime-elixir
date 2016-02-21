@@ -1,5 +1,6 @@
 # Onetime
-An onetime key-value store for elixir.
+An onetime key-value store for elixir.  
+[![Build Status](https://travis-ci.org/ryo33/onetime-elixir.svg?branch=master)](https://travis-ci.org/ryo33/onetime-elixir)
 
 ## Usage
 * Create a store  
