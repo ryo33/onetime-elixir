@@ -4,7 +4,7 @@ defmodule Onetime do
   This can be used for such as storing tokens for authentication.
   """
   use GenServer
-  alias Timex.Date, as: Date
+  use Timex
 
   @type result :: {:ok, any} | :error
 
@@ -25,7 +25,7 @@ defmodule Onetime do
   """
   @spec register(any, any, any) :: any
   def register(name, key, value) do
-    register(name, key, value, Date.now())
+    register(name, key, value, DateTime.now())
   end
 
   @doc """
@@ -90,12 +90,12 @@ defmodule Onetime do
   defp get_from_map(map, key, now, secs) do
     case Map.get(map, key) do
       {value, time} ->
-        if secs != :infinity && Date.diff(time, now, :secs) > secs do
+        if secs != :infinity && DateTime.diff(time, now, :seconds) > secs do
           :error
         else
           {:ok, value}
         end
-        _ -> :error
+      _ -> :error
     end
   end
 
@@ -111,24 +111,24 @@ defmodule Onetime do
 
   def handle_cast({:clear, secs}, map) do
     map = if secs != :infinity do
-      now = Date.now()
-      Enum.filter(map, fn {_key, {_value, time}} -> Date.diff(time, now, :secs) < secs end)
+      now = DateTime.now()
+      Enum.filter(map, fn {_key, {_value, time}} -> DateTime.diff(time, now, :seconds) < secs end)
     else map end
     {:noreply, map}
   end
 
   def handle_call({:get, {key, secs}}, _from, map) do
-    reply = get_from_map(map, key, Date.now(), secs)
+    reply = get_from_map(map, key, DateTime.now(), secs)
     {:reply, reply, map}
   end
 
   def handle_call({:pop, {key, secs}}, _from, map) do
-    reply = get_from_map(map, key, Date.now(), secs)
+    reply = get_from_map(map, key, DateTime.now(), secs)
     {:reply, reply, Map.delete(map, key)}
   end
 
   def handle_call({:pop, {key, new_key, secs}}, _from, map) do
-    now = Date.now()
+    now = DateTime.now()
     reply = get_from_map(map, key, now, secs)
     map = if reply != :error do
       Map.delete(map, key)
@@ -141,8 +141,8 @@ defmodule Onetime do
 
   def handle_call({:get_all, secs}, _from, map) do
     map = if secs != :infinity do
-      now = Date.now()
-      Enum.filter(map, fn {_key, {_value, time}} -> Date.diff(time, now, :secs) < secs end) |> Enum.into(%{})
+      now = DateTime.now()
+      Enum.filter(map, fn {_key, {_value, time}} -> DateTime.diff(time, now, :seconds) < secs end) |> Enum.into(%{})
     else map end
     reply = Enum.map(map, fn {key, {value, _time}} -> {key, value} end) |> Enum.into(%{})
     {:reply, reply, map}

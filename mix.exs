@@ -3,7 +3,7 @@ defmodule Onetime.Mixfile do
 
   def project do
     [app: :onetime,
-     version: "1.0.0",
+     version: "1.1.0",
      elixir: "~> 1.2",
      description: "An onetime key-value store",
      package: [
@@ -17,11 +17,11 @@ defmodule Onetime.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :tzdata]]
   end
 
   defp deps do
-    [{:timex, "~> 1.0.0"},
+    [{:timex, "~> 2.2.0"},
      {:earmark, "~> 0.1", only: :dev},
      {:ex_doc, "~> 0.11", only: :dev}]
   end
