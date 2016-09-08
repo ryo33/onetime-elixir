@@ -25,7 +25,7 @@ defmodule Onetime do
   """
   @spec register(any, any, any) :: any
   def register(name, key, value) do
-    register(name, key, value, DateTime.now())
+    register(name, key, value, Timex.now())
   end
 
   @doc """
@@ -90,13 +90,17 @@ defmodule Onetime do
   defp get_from_map(map, key, now, secs) do
     case Map.get(map, key) do
       {value, time} ->
-        if secs != :infinity && DateTime.diff(time, now, :seconds) > secs do
+        if secs != :infinity && old?(time, now, secs) do
           :error
         else
           {:ok, value}
         end
       _ -> :error
     end
+  end
+
+  defp old?(time, now, secs) do
+    Timex.diff(now, time, :seconds) >= secs
   end
 
   # Callbacks
@@ -111,24 +115,24 @@ defmodule Onetime do
 
   def handle_cast({:clear, secs}, map) do
     map = if secs != :infinity do
-      now = DateTime.now()
-      Enum.filter(map, fn {_key, {_value, time}} -> DateTime.diff(time, now, :seconds) < secs end)
+      now = Timex.now()
+      Enum.filter(map, fn {_key, {_value, time}} -> not old?(time, now, secs) end)
     else map end
     {:noreply, map}
   end
 
   def handle_call({:get, {key, secs}}, _from, map) do
-    reply = get_from_map(map, key, DateTime.now(), secs)
+    reply = get_from_map(map, key, Timex.now(), secs)
     {:reply, reply, map}
   end
 
   def handle_call({:pop, {key, secs}}, _from, map) do
-    reply = get_from_map(map, key, DateTime.now(), secs)
+    reply = get_from_map(map, key, Timex.now(), secs)
     {:reply, reply, Map.delete(map, key)}
   end
 
   def handle_call({:pop, {key, new_key, secs}}, _from, map) do
-    now = DateTime.now()
+    now = Timex.now()
     reply = get_from_map(map, key, now, secs)
     map = if reply != :error do
       Map.delete(map, key)
@@ -141,8 +145,8 @@ defmodule Onetime do
 
   def handle_call({:get_all, secs}, _from, map) do
     map = if secs != :infinity do
-      now = DateTime.now()
-      Enum.filter(map, fn {_key, {_value, time}} -> DateTime.diff(time, now, :seconds) < secs end) |> Enum.into(%{})
+      now = Timex.now()
+      Enum.filter(map, fn {_key, {_value, time}} -> not old?(time, now, secs) end) |> Enum.into(%{})
     else map end
     reply = Enum.map(map, fn {key, {value, _time}} -> {key, value} end) |> Enum.into(%{})
     {:reply, reply, map}
